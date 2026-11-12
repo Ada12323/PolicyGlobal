@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8" />
+    <title>政策详情</title>
+    <link rel="stylesheet" th:href="@{/css/main.css?v=20250916a}" />
+    <script src="/js/jquery-1.8.0.js"></script>
+    <style>
+        .hidden {
+            display: none;
+        }
+    </style>
+
+</head>
+<body>
+<div class="ambient">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+    <div class="bg"></div>
+</div>
+<header>
+    <a href="/">返回首页</a>
+</header>
+<main class="container detail-wrap">
+    <div class="detail-card">
+        <div class="detail-title" id="title"></div>
+        <div class="detail-subtitle" id="originalTitle" style="display:none"></div>
+        <div class="meta">
+            <div id="publishDate"></div>
+            <div class="dot"></div>
+            <div id="orgName"></div>
+            <div id="average"></div>
+        </div>
+        <div class="actions" style="display:flex;gap:10px;flex-wrap:wrap">
+            <a id="sourceUrl" class="btn btn-outline" href="#" target="_blank" rel="noopener">来源链接</a>
+            <a id="pdfOpen" class="btn btn-outline" href="#" target="_blank" rel="noopener">下载 PDF</a>
+            <button id="togglePdf" class="btn btn-outline" style="display:none;">内嵌预览</button>
+
+            <!--      评分按钮-->
+            <button id="toggleBtn" class="btn">评分</button>
+            <div  id="toggleInput" class="hidden">
+                <input type="number"   placeholder="1-10分" style="height: 15px;" id="ratingInput"/>
+                <button type="submit" class="btn btn-outline" id="submitRating" >提交</button>
+            </div>
+
+            <!--      已评分显示-->
+            <div id="alreadyRated" class="hidden">
+            </div>
+
+            <button id="favoriteBtn" class="btn btn-outline favorite-btn">
+                <svg class="favorite-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 3L14.59 8.26L20.5 9.27L16.25 13.14L17.5 19.02L12 16.27L6.5 19.02L7.75 13.14L3.5 9.27L9.41 8.26L12 3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span class="favorite-text">收藏</span>
+            </button>
+            <button id="deleteBtn" class="btn btn-outline" style="color: #d9534f; border-color: #d9534f; margin-left: 10px;">
+                删除政策
+            </button>
+        </div>
+        <hr style="border:none;border-top:1px solid var(--border);margin:16px 0;" />
+        <article id="summary" class="detail-summary"></article>
+        <div id="pdfContainer" style="margin-top:16px;display:none;">
+            <iframe id="pdfFrame" class="pdf-frame" title="PDF 预览" referrerpolicy="no-referrer"></iframe>
+        </div>
+    </div>
+</main>
+<script th:src="@{/js/common.js?v=20250916}"></script>
+<script th:src="@{/js/assistant-widget.js?v=20250930a}"></script>
+<script th:src="@{/js/detail.js?v=20250916}"></script>
+
+<script>
+    // 等待页面加载完成
+    document.addEventListener('DOMContentLoaded', function() {
+
+        // 1. 获取 ID 的通用方法 (兼容 路径参数 和 URL查询参数)
+        function getCurrentPolicyId() {
+            // 优先尝试从 URL 参数获取 (例如 my-detail.html?id=123)
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('id')) {
+                return params.get('id');
+            }
+
+            // 其次尝试从路径获取 (例如 /policy/123 或 /my-policy/123)
+            // 这里的正则匹配 URL 路径末尾的数字
+            const m = location.pathname.match(/\/(\d+)(\/|$)/);
+            return m ? m[1] : null;
+        }
+
+        const policyId = getCurrentPolicyId();
+        const deleteBtn = document.getElementById('deleteBtn');
+
+        // 如果拿不到 ID，就不显示删除按钮
+        if (!policyId) {
+            console.warn("未检测到政策ID，删除按钮隐藏");
+            return;
+        }
+
+        // 显示按钮
+        deleteBtn.style.display = 'inline-block';
+
+        // 2. 绑定点击事件
+        deleteBtn.addEventListener('click', async function() {
+
+            // 二次确认
+            if (!confirm('确定要彻底删除这条政策吗？\n删除后将无法恢复！')) {
+                return;
+            }
+
+            // 禁用按钮防止重复点击，并显示加载状态
+            const originalText = deleteBtn.textContent;
+            deleteBtn.textContent = '删除中...';
+            deleteBtn.disabled = true;
+            deleteBtn.style.opacity = '0.6';
+
+            try {
+                // 3. 发送请求 (参考 detail.js 的 fetch 写法)
+                // 注意：这里假设后端接口是 DELETE 方法，路径是 /api/policy/{id}
+                // 如果你的后端接口不同，请修改下面的 url 和 method
+                const response = await fetch(`/api/policy/mydetail/${policyId}`, {
+                    method: 'DELETE', // 通常删除用 DELETE，如果后端是 POST 请改为 'POST'
+                    headers: {
+                        'Content-Type': 'application/json'
+                        // 如果需要 CSRF token，通常在这里添加
+                    }
+                });
+
+                if (response.ok) {
+                    // 尝试解析返回的 JSON 消息（如果有的话）
+                    // 很多后端删除成功只返回 200 OK，不一定有 body，所以加个 try-catch
+                    let msg = '删除成功';
+                    try {
+                        const data = await response.json();
+                        if(data.message) msg = data.message;
+                    } catch(e) {}
+
+                    // 使用 detail.js 里定义的 showMsg 显示成功提示
+                    if (typeof showMsg === 'function') {
+                        showMsg(msg);
+                    } else {
+                        alert(msg);
+                    }
+
+                    // 延时 1 秒后跳转回首页或列表页
+                    setTimeout(() => {
+                        window.location.href = '/'; // 修改为你想要跳转的页面
+                    }, 1000);
+
+                } else {
+                    throw new Error(`请求失败: ${response.status}`);
+                }
+
+            } catch (error) {
+                console.error('删除操作出错:', error);
+
+                // 恢复按钮状态
+                deleteBtn.textContent = originalText;
+                deleteBtn.disabled = false;
+                deleteBtn.style.opacity = '1';
+
+                const errorMsg = '删除失败：' + error.message;
+                if (typeof showMsg === 'function') {
+                    showMsg(errorMsg);
+                } else {
+                    alert(errorMsg);
+                }
+            }
+        });
+    });
+</script>
+
+<script th:src="@{/js/particles-bg.js?v=20250916}"></script>
+<script src="/js/rating.js"></script>
+
+</body>
+</html>

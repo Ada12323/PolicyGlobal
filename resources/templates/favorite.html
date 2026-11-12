@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的收藏 - 政策分析系统</title>
+    <link rel="stylesheet" th:href="@{/css/favorite.css}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="page-favorite">
+<div class="container">
+    <header class="header">
+        <nav class="breadcrumb">
+            <a th:href="@{/}" class="breadcrumb-link">
+                <i class="fas fa-home"></i>首页
+            </a>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current">我的收藏</span>
+        </nav>
+        <div class="header-content">
+            <h1 class="header-title">
+                <i class="fas fa-star"></i>我的收藏
+            </h1>
+            <p class="header-subtitle">管理您收藏的政策信息</p>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="toolbar">
+            <div class="search-section">
+                <div class="search-container">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="searchInput" class="search-input" placeholder="搜索收藏的政策...">
+                    <button id="searchBtn" class="search-btn">
+                        <i class="fas fa-search"></i>搜索
+                    </button>
+                </div>
+            </div>
+            <div class="sort-section">
+                <div class="sort-container">
+                    <i class="fas fa-sort sort-icon"></i>
+                    <select id="sortSelect" class="sort-select">
+                        <option value="createdAt,desc">按收藏时间降序</option>
+                        <option value="createdAt,asc">按收藏时间升序</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div id="loadingIndicator" class="loading-state">
+                <div class="spinner"></div>
+                <p>正在加载收藏数据...</p>
+            </div>
+
+            <div id="favoritesList" class="favorites-grid"></div>
+
+            <div id="noFavorites" class="empty-state">
+                <div class="empty-icon">
+                    <i class="fas fa-bookmark"></i>
+                </div>
+                <h3>暂无收藏</h3>
+                <p>您还没有收藏任何政策</p>
+                <a th:href="@{/}" class="btn btn-primary">
+                    <i class="fas fa-compass"></i>去发现政策
+                </a>
+            </div>
+        </div>
+
+        <div id="pagination" class="pagination-container"></div>
+    </main>
+</div>
+
+<script th:src="@{/js/favorite.js}"></script>
+</body>
+</html>

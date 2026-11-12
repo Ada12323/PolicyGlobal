@@ -1,0 +1,58 @@
+server:
+  port: ${SERVER_PORT:8989}
+
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/policy?sslMode=PREFERRED&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:123456}
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER:com.mysql.cj.jdbc.Driver}
+  jpa:
+    hibernate:
+      ddl-auto: ${SPRING_JPA_DDL_AUTO:none}
+    open-in-view: ${SPRING_JPA_OPEN_IN_VIEW:false}
+    show-sql: ${SPRING_JPA_SHOW_SQL:true}
+    properties:
+      hibernate.format_sql: ${SPRING_JPA_FORMAT_SQL:true}
+  thymeleaf:
+    cache: ${SPRING_THYMELEAF_CACHE:false}
+
+logging:
+  level:
+    root: ${LOG_LEVEL_ROOT:INFO}
+    org.springframework.security: ${LOG_LEVEL_SECURITY:INFO}
+    com.example.policy: ${LOG_LEVEL_APP:DEBUG}
+
+jwt:
+  secret: ${JWT_SECRET:CHANGE_ME_TO_LONG_RANDOM_SECRET_KEY_256_BITS_MIN}
+  expiration-minutes: ${JWT_EXPIRATION_MINUTES:120}
+
+llm:
+  timeout-seconds: ${LLM_TIMEOUT_SECONDS:7200}
+  retries: ${LLM_RETRIES:1}
+  grok:
+    api-key: sk-5FFziks9MfI6pWWEA79dB86e359e48Ba87E90aB98dD08a1a
+    base-url: https://kfcv50.link/v1/chat/completions
+    responses-url: https://kfcv50.link/v1/responses      # 已启用（联网搜索专用）
+    model: ${LLM_GROK_MODEL:grok-4}
+    max-tokens: ${LLM_GROK_MAX_TOKENS:80000}
+    enable-search: true                                 # ← 搜索已强制开启！
+  qwen:
+    api-key: ${QWEN_API_KEY:sk-VNtL64ZOdIcrzZgd3e6dB10b8a1148D1940065D729D51f27}
+    base-url: https://kfcv50.link/v1/chat/completions
+    model: qwen3-235b-a22b
+    max-tokens: 16384
+    temperature: 0.1
+
+security:
+  # 首次无法登录时，可临时开启以下选项自动创建管理员（启动后建议关闭）
+  bootstrap-admin: false
+  bootstrap-admin-username: admin
+  bootstrap-admin-password: admin123
+
+assistant:
+  name: ${ASSISTANT_NAME:政策分析助手}
+  sql:
+    max-limit: ${ASSISTANT_SQL_MAX_LIMIT:50}
+    timeout-seconds: ${ASSISTANT_SQL_TIMEOUT_SECONDS:12}
+    allow-write: ${ASSISTANT_SQL_ALLOW_WRITE:false}

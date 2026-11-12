@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8" />
+  <title>首页 - 政策分析系统</title>
+  <link rel="stylesheet" th:href="@{/css/main.css?v=20250916a}" />
+</head>
+<body>
+<div class="ambient">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+  <div class="blob b4"></div>
+  <div class="bg"></div>
+</div>
+<header>
+  <h1>政策分析系统</h1>
+  <nav>
+    <div class="nav-left">
+      <a href="/" >首页</a>
+      <a href="/favorite" class="favorite-btn">我的收藏</a>
+      <a href="/agent" sec:authorize="hasRole('ADMIN')">情报检索</a>
+    </div>
+    <div class="nav-right">
+      <a href="/wordcloud">统计</a>
+      <a href="/admin" sec:authorize="hasRole('ADMIN')">管理</a>
+      <a href="/admin_pdf_validation" sec:authorize="hasRole('ADMIN')">pdf验证</a>
+      <a href="/admin" id="adminLink" style="display:none;">管理</a>
+      <a href="/login" id="loginLink">登录</a>
+      <div id="user-menu" style="display: none;">
+        <div class="user-menu-container">
+          <button id="user-menu-btn">
+            <i class="fas fa-key" style="margin-right: 6px;"></i>个人中心
+          </button>
+          <div class="user-menu-content">
+            <a href="/change_password">修改密码</a>
+            <a href="#" id="logoutLink">退出登录</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<main class="container">
+  <!-- Hero（弱化右侧视觉，强调核心口号） -->
+  <section class="hero hero-single">
+    <div class="hero-left">
+  <div class="hero-title art-title">让政策获取与理解更简单</div>
+  <div class="hero-sub art-sub">仅 LLM/RAG 深度检索 · 自驱 Agent 采集 · PDF 预览导出 · 权限与日志 · 一站式</div>
+    </div>
+  </section>
+
+  <!-- 搜索栏（置于主要信息之上，突出显示） -->
+  <section class="panel search-panel search-special">
+    <div class="search-row">
+      <div class="search-hero">
+        <input class="search-input-lg" type="text" id="kw" placeholder="搜索政策关键词，例如：专项资金、税收优惠…" />
+        <button id="btnSearch" class="btn btn-primary" title="搜索">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm10-1-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <span>搜索</span>
+        </button>
+      </div>
+      <div class="search-filters row">
+        <div class="fi">
+          <label class="small muted">开始</label>
+          <input type="date" id="startDate" title="开始日期" />
+        </div>
+        <span class="dash">—</span>
+        <div class="fi">
+          <label class="small muted">结束</label>
+          <input type="date" id="endDate" title="结束日期" />
+        </div>
+        <div class="fi">
+          <label class="small muted">数量</label>
+          <input type="number" id="limit" value="20" min="1" max="200" title="返回数量" />
+        </div>
+        <div class="fi actions">
+          <button id="btnApplyFilter" class="btn btn-primary">确定</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 搜索结果（位于顶部，数据流之上） -->
+  <section id="panel-search" class="panel" style="display:none">
+    <div class="panel-title">搜索结果</div>
+    <ul id="searchList" class="grid"></ul>
+  </section>
+
+  <!-- 机构统计 -->
+  <section id="orgStatsSec" class="panel">
+    <div class="panel-title">机构统计</div>
+    <div id="orgStats" class="chips"></div>
+  </section>
+
+
+  <style>
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 {
+      white-space: nowrap;
+      margin-right: 2em; /* Add some space */
+    }
+    header nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+    .nav-left {
+        display: flex;
+        gap: 1em;
+    }
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 1em;
+    }
+    .user-menu-container {
+      position: relative;
+      display: inline-block;
+    }
+
+    #user-menu-btn {
+      color: #938d8d;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 8px 16px;
+      border-radius: 4px;
+      background: none;
+      border: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    #user-menu-btn:hover, .user-menu-container:hover #user-menu-btn {
+      transform: translateY(-1px);
+    }
+
+    .user-menu-content {
+      display: none;
+      position: absolute;
+      background-color: #f9f9f9;
+      min-width: 120px;
+      box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+      z-index: 1;
+      border-radius: 4px;
+      overflow: hidden;
+      right: 0;
+    }
+
+    .user-menu-content a {
+      color: black;
+      padding: 12px 16px;
+      text-decoration: none;
+      display: block;
+      font-size: 14px;
+    }
+
+    .user-menu-content a:hover {
+      background-color: #f1f1f1;
+    }
+
+    .user-menu-container:hover .user-menu-content {
+      display: block;
+    }
+  </style>
+
+
+
+  <!-- 数据分区（最新/热门/推荐） -->
+  <section class="panel">
+    <div class="tabs" style="align-items:center;gap:12px;flex-wrap:wrap">
+      <div class="tabs-left">
+        <button class="tab-btn active" data-target="latest">最新</button>
+        <button class="tab-btn" data-target="hot">热门</button>
+        <button class="tab-btn" data-target="recommend" id="tabRecommend">推荐</button>
+
+<!--        全部政策跳转-->
+        <a href="/allpolicy"><button class="tab-btn"  style="color:#1d4ed8">全部政策</button> </a>
+          <a href="/mysearch"><button class="tab-btn"  style="color:#06C3FC">我的检索</button> </a>
+      </div>
+    </div>
+  <div id="panel-latest" class="tab-panel active"><ul id="latestList" class="grid"></ul></div>
+  <div id="panel-hot" class="tab-panel"><ul id="hotList" class="grid"></ul></div>
+  <div id="panel-recommend" class="tab-panel"><ul id="recommendList" class="grid"></ul></div>
+    <div class="tabs-right pager-bar" style="display:flex;align-items:center;gap:8px; justify-content: flex-end; margin-top: 20px;">
+        <label class="small muted">每页</label>
+  <select id="pageSizeSel" class="select">
+          <option value="10" selected>10</option>
+          <option value="15">15</option>
+          <option value="20">20</option>
+        </select>
+        <div class="pager" style="display:flex;gap:6px">
+          <button id="prevPage" class="btn">上一页</button>
+          <span id="pageInfo" class="small muted">1 / 1</span>
+          <button id="nextPage" class="btn">下一页</button>
+        </div>
+      </div>
+  </section>
+</main>
+<script th:src="@{/js/common.js?v=20250917b}"></script>
+<script th:src="@{/js/assistant-widget.js?v=20250930a}"></script>
+<script th:src="@{/js/home.js?v=20250917b}"></script>
+<script th:src="@{/js/particles-bg.js?v=20250917b}"></script>
+<script th:src="@{/js/ambient.js?v=20250917b}"></script>
+</body>
+</html>

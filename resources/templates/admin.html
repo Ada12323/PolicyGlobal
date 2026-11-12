@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8" />
+  <title>管理后台 - 政策分析系统</title>
+  <link rel="stylesheet" th:href="@{/css/main.css?v=20250916a}" />
+  <style>
+    /* ========== 管理后台专用样式 ========== */
+    /* 容器布局 */
+    .page-admin .container {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      padding: 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .page-admin .container > section {
+      flex: 1;
+      min-width: 350px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      border: 1px solid #e0e0e0;
+    }
+
+    /* 标题样式 */
+    .page-admin section h3 {
+      color: #2c3e50;
+      margin-top: 0;
+      padding-bottom: 16px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #e8f4ff;
+      font-size: 1.4rem;
+      font-weight: 600;
+    }
+
+    /* ========== 按钮重新设计 ========== */
+    /* 基础按钮样式 */
+    .page-admin .btn {
+      padding: 10px 20px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      background: rgba(255, 255, 255, 0.9);
+      color: #333;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin: 2px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .page-admin .btn:hover {
+      background: rgba(255, 255, 255, 1);
+      border-color: #4a9eff;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .page-admin .btn:active {
+      transform: translateY(0);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    /* 主要按钮 - 蓝色边框 */
+    .page-admin .btn-primary {
+      background: rgba(255, 255, 255, 0.95);
+      border-color: #4a9eff;
+      color: #2c5aa0;
+    }
+
+    .page-admin .btn-primary:hover {
+      background: #4a9eff;
+      color: white;
+      border-color: #4a9eff;
+    }
+
+    /* 成功按钮 - 绿色边框 */
+    .page-admin .btn-success {
+      background: rgba(255, 255, 255, 0.95);
+      border-color: #5ac18e;
+      color: #2d7d5a;
+    }
+
+    .page-admin .btn-success:hover {
+      background: #5ac18e;
+      color: white;
+      border-color: #5ac18e;
+    }
+
+    /* 危险按钮 - 红色边框 */
+    .page-admin .btn-danger {
+      background: rgba(255, 255, 255, 0.95);
+      border-color: #ff5a5a;
+      color: #b33c3c;
+    }
+
+    .page-admin .btn-danger:hover {
+      background: #ff5a5a;
+      color: white;
+      border-color: #ff5a5a;
+    }
+
+    /* 小按钮 */
+    .page-admin .btn-small {
+      padding: 6px 12px;
+      font-size: 13px;
+      border-radius: 6px;
+      border-width: 1.5px;
+    }
+
+    /* ========== 表单样式 ========== */
+    .page-admin .policy-form {
+      background: #f8fafc;
+      border-radius: 10px;
+      padding: 20px;
+      margin: 20px 0;
+      border: 1px solid #e2e8f0;
+    }
+
+    .page-admin .policy-form h4 {
+      margin-top: 0;
+      color: #374151;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    /* 表单布局 */
+    .page-admin .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .page-admin .form-group {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .page-admin .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #4a5568;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    /* 表单输入元素 */
+    .page-admin .form-group input,
+    .page-admin .form-group select,
+    .page-admin .form-group textarea {
+      width: 100%;
+      padding: 10px 14px;
+      background: white;
+      border: 1px solid #cbd5e0;
+      border-radius: 6px;
+      color: #2d3748;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .page-admin .form-group input:focus,
+    .page-admin .form-group select:focus,
+    .page-admin .form-group textarea:focus {
+      outline: none;
+      border-color: #4a9eff;
+      box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.1);
+    }
+
+    .page-admin .form-group textarea {
+      min-height: 90px;
+      resize: vertical;
+      font-family: inherit;
+    }
+
+    /* 表单操作按钮组 */
+    .page-admin .policy-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    /* ========== 列表样式 ========== */
+    .page-admin ul {
+      list-style-type: none;
+      padding: 0;
+      margin: 20px 0;
+      max-height: 400px;
+      overflow-y: auto;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      background: white;
+    }
+
+    /* 自定义滚动条 */
+    .page-admin ul::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .page-admin ul::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 3px;
+    }
+
+    .page-admin ul::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+
+    .page-admin ul::-webkit-scrollbar-thumb:hover {
+      background: #a0aec0;
+    }
+
+    /* 政策项目样式 */
+    .page-admin .policy-item {
+      background: white;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 10px;
+      border-left: 4px solid #4a9eff;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      transition: all 0.2s;
+      border: 1px solid #e2e8f0;
+    }
+
+    .page-admin .policy-item:hover {
+      border-color: #cbd5e0;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .page-admin .policy-info {
+      flex: 1;
+    }
+
+    .page-admin .policy-title {
+      font-weight: 600;
+      color: #2d3748;
+      margin-bottom: 8px;
+      font-size: 1.05rem;
+      line-height: 1.4;
+    }
+
+    .page-admin .policy-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 13px;
+      color: #718096;
+      margin-bottom: 8px;
+    }
+
+    .page-admin .policy-meta span {
+      background: #f7fafc;
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .page-admin .policy-summary {
+      font-size: 14px;
+      color: #4a5568;
+      line-height: 1.5;
+      margin-top: 8px;
+      padding: 10px;
+      background: #f8fafc;
+      border-radius: 6px;
+      border-left: 3px solid #5ac18e;
+    }
+
+    .page-admin .policy-actions-small {
+      display: flex;
+      gap: 8px;
+      margin-left: 15px;
+    }
+
+    /* 机构和用户项目样式 */
+    .page-admin .org-item,
+    .page-admin .user-item {
+      background: white;
+      border-radius: 8px;
+      padding: 14px;
+      margin: 8px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s;
+      border: 1px solid #e2e8f0;
+    }
+
+    .page-admin .org-item:hover,
+    .page-admin .user-item:hover {
+      border-color: #cbd5e0;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .page-admin .org-info,
+    .page-admin .user-info {
+      flex: 1;
+    }
+
+    .page-admin .org-name,
+    .page-admin .user-name {
+      font-weight: 600;
+      color: #2d3748;
+      margin-bottom: 4px;
+      font-size: 1rem;
+    }
+
+    .page-admin .org-id,
+    .page-admin .user-roles {
+      font-size: 13px;
+      color: #718096;
+      line-height: 1.4;
+    }
+
+    .page-admin .item-actions {
+      display: flex;
+      gap: 8px;
+      margin-left: 15px;
+    }
+
+    /* 链接样式 */
+    .page-admin a {
+      color: #4a9eff;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .page-admin a:hover {
+      color: #2c5aa0;
+      text-decoration: underline;
+    }
+
+    /* 空状态提示 */
+    .page-admin .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #a0aec0;
+      font-style: italic;
+    }
+
+    /* 机构部分特定样式 */
+    .page-admin #orgSection .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .page-admin #orgSection input {
+      flex: 1;
+      min-width: 180px;
+      padding: 10px 14px;
+      background: white;
+      border: 1px solid #cbd5e0;
+      border-radius: 6px;
+      color: #2d3748;
+      font-size: 14px;
+    }
+
+    /* 快速设置用户角色表单样式 */
+    .page-admin .quick-set-role-form {
+      background: #f0f9ff;
+      border-radius: 10px;
+      padding: 20px;
+      margin: 0 0 20px 0;
+      border: 1px solid #bae6fd;
+    }
+
+    .page-admin .quick-set-role-form h4 {
+      margin-top: 0;
+      color: #0369a1;
+      border-bottom: 1px solid #bae6fd;
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .page-admin .quick-set-role-form .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 15px;
+    }
+
+    .page-admin .quick-set-role-form .form-group {
+      margin-bottom: 0;
+    }
+
+    .page-admin .quick-set-role-form .form-group label {
+      margin-bottom: 8px;
+      color: #0369a1;
+      font-weight: 600;
+    }
+
+    .page-admin .quick-set-role-form .form-group input,
+    .page-admin .quick-set-role-form .form-group select {
+      padding: 10px 14px;
+      background: white;
+      border: 1px solid #7dd3fc;
+      border-radius: 6px;
+      color: #2d3748;
+      font-size: 14px;
+    }
+
+    .page-admin .quick-set-role-form .form-group input:focus,
+    .page-admin .quick-set-role-form .form-group select:focus {
+      outline: none;
+      border-color: #0ea5e9;
+      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+    }
+
+    .page-admin .role-hint {
+      font-size: 13px;
+      color: #64748b;
+      margin-top: 8px;
+      font-style: italic;
+    }
+
+    /* 响应式设计 */
+    @media (max-width: 1200px) {
+      .page-admin .container {
+        gap: 20px;
+      }
+
+      .page-admin .container > section {
+        min-width: 300px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .page-admin .container {
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .page-admin .container > section {
+        min-width: 100%;
+      }
+
+      .page-admin .form-row {
+        flex-direction: column;
+      }
+
+      .page-admin .policy-actions,
+      .page-admin .item-actions {
+        flex-wrap: wrap;
+      }
+
+      .page-admin .policy-item,
+      .page-admin .org-item,
+      .page-admin .user-item {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .page-admin .policy-actions-small,
+      .page-admin .item-actions {
+        margin-left: 0;
+        margin-top: 12px;
+        width: 100%;
+        justify-content: flex-end;
+      }
+
+      .page-admin #orgSection .form-row {
+        flex-direction: column;
+      }
+
+      .page-admin .quick-set-role-form .form-row {
+        flex-direction: column;
+      }
+    }
+
+    /* 按钮图标占位符 */
+    .page-admin .btn::before {
+      display: none;
+    }
+
+    /* 刷新按钮伪元素 */
+    .page-admin #btnLoadOrgs::before,
+    .page-admin #btnLoadUsers::before,
+    .page-admin #btnLoadPolicies::before {
+      content: "🔄";
+      font-size: 14px;
+    }
+
+    /* 添加按钮伪元素 */
+    .page-admin #btnAddOrg::before,
+    .page-admin #btnAddUser::before,
+    .page-admin #btnAddPolicy::before {
+      content: "➕";
+      font-size: 14px;
+    }
+
+    /* 清除按钮伪元素 */
+    .page-admin #btnClearPolicyForm::before {
+      content: "🗑️";
+      font-size: 14px;
+    }
+
+    /* 设置角色按钮伪元素 */
+    .page-admin #btnSetRole::before {
+      content: "👑";
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body class="page-admin">
+<div class="ambient">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+  <div class="bg"></div>
+</div>
+<header>
+  <a href="/">首页</a>
+  <h2>管理后台</h2>
+</header>
+<main class="container">
+  <section id="orgSection">
+    <h3>机构管理</h3>
+    <div class="form-row">
+      <input id="newOrgName" placeholder="机构名称" />
+      <input id="newOrgSampleUrl" placeholder="样本URL (可选)" />
+      <button id="btnAddOrg" class="btn btn-primary">新增机构</button>
+    </div>
+    <button id="btnLoadOrgs" class="btn">刷新机构</button>
+    <ul id="orgList"></ul>
+  </section>
+
+  <section id="policySection">
+    <h3>政策管理</h3>
+    <button id="btnLoadPolicies" class="btn">刷新政策</button>
+
+    <div class="policy-form">
+      <h4>新增政策</h4>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="policyZhTitle">中文标题 *</label>
+          <input type="text" id="policyZhTitle" placeholder="政策中文标题" />
+        </div>
+        <div class="form-group">
+          <label for="policyOriginalTitle">原文标题</label>
+          <input type="text" id="policyOriginalTitle" placeholder="政策原文标题" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="policyOrg">所属机构</label>
+          <select id="policyOrg">
+            <option value="">-- 选择机构 --</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="policyPublishDate">发布日期</label>
+          <input type="date" id="policyPublishDate" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="policySourceUrl">来源URL</label>
+          <input type="url" id="policySourceUrl" placeholder="政策来源URL" />
+        </div>
+        <div class="form-group">
+          <label for="policyPdfUrl">PDF链接</label>
+          <input type="url" id="policyPdfUrl" placeholder="政策PDF链接" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="policySummary">政策摘要</label>
+        <textarea id="policySummary" placeholder="政策摘要"></textarea>
+      </div>
+
+      <div class="policy-actions">
+        <button id="btnAddPolicy" class="btn btn-success">添加政策</button>
+        <button id="btnClearPolicyForm" class="btn">清空表单</button>
+      </div>
+    </div>
+
+    <ul id="policyList"></ul>
+  </section>
+
+  <section id="userSection">
+    <h3>用户管理</h3>
+
+    <!-- 快速设置用户角色表单 -->
+    <div class="quick-set-role-form">
+      <h4>快速设置用户角色</h4>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="setRoleUserId">用户ID</label>
+          <input type="number" id="setRoleUserId" placeholder="输入用户ID" min="1" />
+        </div>
+        <div class="form-group">
+          <label for="setRoleType">角色类型</label>
+          <select id="setRoleType">
+            <option value="1">管理员 (ADMIN)</option>
+            <option value="2">普通用户 (USER)</option>
+          </select>
+          <div class="role-hint">1=管理员，2=普通用户</div>
+        </div>
+        <div class="form-group">
+          <button id="btnSetRole" class="btn btn-primary">设置角色</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="policy-form">
+      <h4>新增用户</h4>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="newUsername">用户名 *</label>
+          <input type="text" id="newUsername" placeholder="用户名" />
+        </div>
+        <div class="form-group">
+          <label for="newPassword">密码 *</label>
+          <input type="password" id="newPassword" placeholder="密码" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="newNickname">昵称</label>
+          <input type="text" id="newNickname" placeholder="用户昵称" />
+        </div>
+      </div>
+      <button id="btnAddUser" class="btn btn-success">添加用户</button>
+    </div>
+
+    <button id="btnLoadUsers" class="btn">刷新用户</button>
+    <ul id="userList"></ul>
+  </section>
+</main>
+<script th:src="@{/js/common.js?v=20250916}"></script>
+<script th:src="@{/js/assistant-widget.js?v=20250930a}"></script>
+<script th:src="@{/js/admin.js?v=20250916}"></script>
+<script th:src="@{/js/particles-bg.js?v=20250916}"></script>
+</body>
+</html>
